@@ -322,17 +322,20 @@ void LJ_Simulation::reflect(AtomState& s)
 void LJ_Simulation::step()
 {
 	std::vector<AtomState> nextAtoms = _cur.Atoms;
+	_Fi = std::vector<vec3Dd>(_nTotal, { 0,0,0 });
 	for (int iAt = 0; iAt < _nTotal; ++iAt)
 	{
-		auto Fi = vec3Dd::null();
-		for (int jAt = 0; jAt < _nTotal; ++jAt)
+		for (int jAt = iAt + 1; jAt < _nTotal; ++jAt)
 		{
-			if (iAt == jAt)
-				continue;
-			Fi += force(_cur.Atoms[iAt].Pos, _cur.Atoms[jAt].Pos,
+			auto fij = force(_cur.Atoms[iAt].Pos, _cur.Atoms[jAt].Pos,
 				_cur.Types[iAt], _cur.Types[jAt]);
+			_Fi[iAt] += fij;
+			_Fi[jAt] -= fij;
 		}
-		nextAtoms[iAt].Vel += Fi * _params.TimeStep;
+	}
+	for (int iAt = 0; iAt < _nTotal; ++iAt)
+	{
+		nextAtoms[iAt].Vel += _Fi[iAt] * _params.TimeStep;
 		nextAtoms[iAt].Pos += nextAtoms[iAt].Vel * _params.TimeStep;
 		reflect(nextAtoms[iAt]);
 	}

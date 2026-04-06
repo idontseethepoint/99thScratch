@@ -19,6 +19,8 @@ public:
 	MeshRenderer(Mesh::Ptr mesh);
 	static MeshRenderer::Ptr Cuboid(vec3D const& low, vec3D const& high);
 	static MeshRenderer::Ptr Sphere(vec3D const& center, float r);
+	static MeshRenderer::Ptr Cone(vec3D const& baseCenter, vec3D axis,
+		float r);
 	~MeshRenderer();
 	virtual void Render(QMatrix4x4 const& trans) override;
 	void SetColor(QColor const& color);

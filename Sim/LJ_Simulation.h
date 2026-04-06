@@ -86,4 +86,5 @@ private:
 	double _atomScale = 1.0;
 	bool _needsHeat = false;
 	bool _needsCool = false;
+	std::vector<vec3Dd> _Fi;
 };

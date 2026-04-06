@@ -21,8 +21,12 @@ struct vec3Dt
 	Scalar operator*(vec3Dt<Scalar> const& other) const;
 	vec3Dt<Scalar> operator*(Scalar s) const;
 	void operator*=(Scalar s);
+	vec3Dt<Scalar> operator/(Scalar s) const;
+	void operator/=(Scalar s);
 	vec3Dt<Scalar> operator^(vec3Dt<Scalar> const& other) const; //cross product
 	vec3Dt<Scalar> cross(vec3Dt<Scalar> const& other) const;
+	void normalize();
+	vec3Dt normalized() const;
 	Scalar& x();
 	Scalar& y();
 	Scalar& z();

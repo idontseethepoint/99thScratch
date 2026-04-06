@@ -25,22 +25,6 @@ QMatrix4x4 SceneWidget::_proj;
 QVector3D SceneWidget::_eye = QVector3D(10.0, 0, 0);
 QVector3D SceneWidget::_up = QVector3D(0, 1.0, 0);
 
-namespace
-{
-    QByteArray versionedShaderCode(const char* src)
-    {
-        QByteArray versionedSrc;
-
-        if (QOpenGLContext::currentContext()->isOpenGLES())
-            versionedSrc.append(QByteArrayLiteral("#version 300 es\n"));
-        else
-            versionedSrc.append(QByteArrayLiteral("#version 330\n"));
-
-        versionedSrc.append(src);
-        return versionedSrc;
-    }
-}
-
 SceneWidget::SceneWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
     m_world.setToIdentity();
@@ -115,23 +99,34 @@ void SceneWidget::mouseMoveEvent(QMouseEvent* e)
     auto delta = e->pos() - _lastPos;
 
     auto ax = delta.x() * 0.001;
+    auto ay = delta.y() * 0.001;
     auto v = _eye - m_target;
     auto t = QVector3D::crossProduct(v, _up);
     if (t.isNull())
         return;
-    t *= v.length() / t.length();
-    _eye = m_target + v * std::cos(ax) + t * std::sin(ax);
 
-    auto ay = delta.y() * 0.001;
-    v = _eye - m_target;
-    auto uv = _up * _distToTarget;
-    t = QVector3D::crossProduct(v, _up);
-    _eye = m_target + v * std::cos(ay) + uv * std::sin(ay);
-    v = _eye - m_target;
-    _up = QVector3D::crossProduct(t, v);
-    _up.normalize();
+    if (e->buttons() & Qt::RightButton)
+    {
+        t.normalize();
+        v.normalize();
+        auto d = (t * ax + _up * ay) * _distToTarget;
+        _eye += d;
+        m_target += d;
+    }
+    else
+    {
+        t *= v.length() / t.length();
+        _eye = m_target + v * std::cos(ax) + t * std::sin(ax);
 
-    _lastPos = e->pos();
+        v = _eye - m_target;
+        auto uv = _up * _distToTarget;
+        t = QVector3D::crossProduct(v, _up);
+        _eye = m_target + v * std::cos(ay) + uv * std::sin(ay);
+        v = _eye - m_target;
+		_up = QVector3D::crossProduct(t, v);
+		_up.normalize();
+	}
+	_lastPos = e->pos();
 }
 
 void SceneWidget::mouseReleaseEvent(QMouseEvent* e)
@@ -152,7 +147,7 @@ void SceneWidget::wheelEvent(QWheelEvent* e)
 
 void SceneWidget::onTimeout()
 {
-    _t += 0.1 * 0.16;
+    _t += 0.2 * 0.16;
     _view = QMatrix4x4();
     _view.lookAt(_eye, m_target, _up);
     emit viewUpdate();

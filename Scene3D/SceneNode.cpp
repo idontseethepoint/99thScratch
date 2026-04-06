@@ -1,4 +1,5 @@
 #include "SceneNode.h"
+#include "ConeMesh.h"
 #include "MeshRenderer.h"
 #include "SimulationSceneNode.h"
 
@@ -46,6 +47,15 @@ SceneNode::Ptr SceneNode::addBoxNode(vec3Dd const& low, vec3Dd high, QString con
 {
 	auto n = addNode(name);
 	auto cr = MeshRenderer::Cuboid(low, high);
+	n->setRenderer(cr);
+	return n;
+}
+
+SceneNode::Ptr SceneNode::addConeNode(vec3D const& baseCenter, vec3D axis,
+	float r, QString const& name)
+{
+	auto n = addNode(name);
+	auto cr = MeshRenderer::Cone(baseCenter, axis, r);
 	n->setRenderer(cr);
 	return n;
 }

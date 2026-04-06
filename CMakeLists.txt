@@ -43,6 +43,7 @@ set(SOURCES
  "Scene3D/MeshRenderer.cpp" 
  "Scene3D/SphereMesh.cpp"
  "Scene3D/vec3D.cpp"
+ "Scene3D/ConeMesh.cpp"
 
  "Sim/LJ_Simulation.cpp" 
 
@@ -53,7 +54,8 @@ set(SOURCES
  "Widgets/SceneWidget.cpp"
  "Widgets/SimulationControls.cpp"
  "Widgets/VecDisplay.cpp" 
- "Widgets/SimulationDisplay.cpp")
+ "Widgets/SimulationDisplay.cpp"
+ )
 
    
 set(QRC_SOURCES

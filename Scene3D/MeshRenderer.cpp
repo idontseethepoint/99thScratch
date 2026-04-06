@@ -1,4 +1,5 @@
 #include "MeshRenderer.h"
+#include "ConeMesh.h"
 #include "CuboidMesh.h"
 #include "SceneWidget.h"
 #include "SphereMesh.h"
@@ -69,6 +70,14 @@ MeshRenderer::Ptr MeshRenderer::Sphere(vec3D const& center, float r)
 	auto sm = std::make_shared<SphereMesh>(center, r);
 	auto ret = std::make_shared<MeshRenderer>(sm);
 	ret->SetColor({ 255, 255, 0 });
+	return ret;
+}
+
+MeshRenderer::Ptr MeshRenderer::Cone(vec3D const& baseCenter, vec3D axis, float r)
+{
+	auto cm = std::make_shared<ConeMesh>(baseCenter, axis, r);
+	auto ret = std::make_shared<MeshRenderer>(cm);
+	ret->SetColor({ 0, 255, 0 });
 	return ret;
 }
 

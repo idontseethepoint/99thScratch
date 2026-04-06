@@ -93,6 +93,20 @@ void vec3Dt<Scalar>::operator*=(Scalar s)
 	Arr[2] *= s;
 }
 
+template<typename Scalar>
+vec3Dt<Scalar> vec3Dt<Scalar>::operator/(Scalar s) const
+{
+	return { Arr[0] / s, Arr[1] / s, Arr[2] / s};
+}
+
+template<typename Scalar>
+void vec3Dt<Scalar>::operator/=(Scalar s)
+{
+	Arr[0] /= s;
+	Arr[1] /= s;
+	Arr[2] /= s;
+}
+
 template <typename Scalar>
 vec3Dt<Scalar> vec3Dt<Scalar>::operator^(vec3Dt<Scalar> const& other) const
 {
@@ -105,6 +119,21 @@ template <typename Scalar>
 vec3Dt<Scalar> vec3Dt<Scalar>::cross(vec3Dt<Scalar> const& other) const
 {
 	return (*this) ^ other;
+}
+
+template<typename Scalar>
+void vec3Dt<Scalar>::normalize()
+{
+	(*this) = this->normalized();
+}
+
+template<typename Scalar>
+vec3Dt<Scalar> vec3Dt<Scalar>::normalized() const
+{
+	auto M = (*this) * (*this);
+	if (M == 0)
+		return null();
+	return (*this) / std::sqrt(M);
 }
 
 template <typename Scalar>

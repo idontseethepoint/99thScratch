@@ -27,6 +27,8 @@ public:
 		QString const& name);
 	SceneNode::Ptr addBoxNode(vec3Dd const& low, vec3Dd high, 
 		QString const& name = "Box");
+	SceneNode::Ptr addConeNode(vec3D const& baseCenter, vec3D axis,
+		float r, QString const& name = "Cone");
 	void setTransform(QMatrix4x4 const& trans);
 	void Remove();
 	void RemoveChild(SceneNode* child);
@@ -35,6 +37,7 @@ public:
 	inline WkPtr const getParent() const { return _parent; }
 	int indexOf(SceneNode* child);
 	int indexInParent();
+	QMatrix4x4 const& Transform() const { return _baseTrans; }
 protected:
 	void updateTrans(QMatrix4x4 const& newParentTrans);
 	WkPtr _parent;
