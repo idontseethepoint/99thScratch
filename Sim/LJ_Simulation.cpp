@@ -2,19 +2,21 @@
 #include "Application.h"
 #include "MainWindow.h"
 #include "MeshRenderer.h"
+#include "EM.cuh"
 
 #include <cmath>
 #include <iostream>
 
 LJ_Simulation::LJ_Simulation() : _params({
-	0.001,
+	0.001, 1.0,
 	{{0, 0, 0}, {10, 10, 10}},
 	{
 		{100, 1, 1, 10},
 		{1, 1, 1, 50},
 		{1, 0.5, 1, 150},
-	} 
-	})
+	},
+	false
+	}), _cudaEv(nullptr)
 {
 	QObject::connect(Application::App(), &Application::StartSimulation,
 		this, &LJ_Simulation::onStartSignal);
@@ -22,31 +24,11 @@ LJ_Simulation::LJ_Simulation() : _params({
 		this, &LJ_Simulation::onPauseSignal);
 }
 
-void LJ_Simulation::SetParams(Parameters const& params)
+void LJ_Simulation::SetParams(LJ_Parameters const& params)
 {
 	_params = params;
-	auto nType = params.Atoms.size();
-	_EpsMatrix = std::vector<std::vector<double>>(nType,
-		std::vector<double>(nType, 0));
-	_SigmaMatrix = std::vector<std::vector<double>>(nType,
-		std::vector<double>(nType, 0));
 	_cur = State();
-	for (int iAt = 0; iAt < nType; ++iAt)
-	{
-		_EpsMatrix[iAt][iAt] = params.Atoms[iAt].Eps;
-		_SigmaMatrix[iAt][iAt] = params.Atoms[iAt].Sigma;
-		_cur.Types.insert(_cur.Types.end(), params.Atoms[iAt].N, iAt);
-		for (int jAt = iAt + 1; jAt < nType; ++jAt)
-		{
-			_EpsMatrix[iAt][jAt] = std::sqrt(
-				params.Atoms[iAt].Eps * params.Atoms[jAt].Eps);
-			_EpsMatrix[jAt][iAt] = _EpsMatrix[iAt][jAt];
-
-			_SigmaMatrix[iAt][jAt] = std::sqrt(
-				params.Atoms[iAt].Sigma * params.Atoms[jAt].Sigma);
-			_SigmaMatrix[jAt][iAt] = _SigmaMatrix[iAt][jAt];
-		}
-	}
+	SetParamMatrices();
 
 	_nTotal = _cur.Types.size();
 	if (_nTotal == 0)
@@ -83,6 +65,15 @@ void LJ_Simulation::SetParams(Parameters const& params)
 	doneAtoms:
 
 	_renderState = _cur;
+
+	if (params.UseCUDA)
+	{
+		_cudaEv.reset(new LJ_CUDA_Evolver(_params, _cur.Types, _cur.Atoms));
+	}
+	else
+	{
+		_cudaEv.reset(nullptr);
+	}
 }
 
 void LJ_Simulation::UpdateNode(SceneNode::Ptr node)
@@ -106,6 +97,8 @@ void LJ_Simulation::UpdateNode(SceneNode::Ptr node)
 	};
 	if (!node)
 		return;
+	if (_nodeNeedsReset)
+		node->Clear();
 	if (node->nChild() < 2 && toShow.Atoms.size() > 0)
 	{
 		for (int iAt = 0; iAt < _nTotal; ++iAt)
@@ -144,25 +137,6 @@ void LJ_Simulation::UpdateNode(SceneNode::Ptr node)
 				}
 			}
 		}
-		for (int iFaceDim = 0; iFaceDim < 3; ++iFaceDim)
-		{
-			for (int iFaceSide = 0; iFaceSide <= 1; ++iFaceSide)
-			{
-				int jDim = (iFaceDim + 1) % 3;
-				int kDim = (iFaceDim + 1) % 3;
-				vec3Dd c0 = box.Low;
-				c0[iFaceDim] = iFaceSide ? box.High[iFaceDim] : box.Low[iFaceDim];
-				vec3Dd c1 = c0;
-				c1[jDim] = box.High[jDim];
-				vec3Dd c2 = c0;
-				c2[kDim] = box.High[kDim];
-				vec3Dd c3 = c1;
-				c3[kDim] = box.High[kDim];
-
-				auto off = off_base;
-
-			}
-		}
 	}
 	else //if (node->nChild() == _nTotal)
 	{
@@ -190,7 +164,7 @@ void LJ_Simulation::onAtomScaleChange(double scale)
 	_atomScale = scale;
 }
 
-void LJ_Simulation::onStartSignal(Parameters const& params)
+void LJ_Simulation::onStartSignal(LJ_Parameters const& params)
 {
 	switch (_runState)
 	{
@@ -202,7 +176,32 @@ void LJ_Simulation::onStartSignal(Parameters const& params)
 		break;
 	case RunState::Paused:
 		_params.TimeStep = params.TimeStep;
-		_params.Box = params.Box;
+		if (_params.Box != params.Box || 
+			_params.Atoms.size() != params.Atoms.size() ||
+			_params.UseCUDA != params.UseCUDA)
+		{
+			_nodeNeedsReset = true;
+			SetParams(params);
+		}
+		else
+		{
+			for (int iAt = 0; iAt < params.Atoms.size(); ++iAt)
+			{
+				if (_params.Atoms[iAt].N != params.Atoms[iAt].N ||
+					_params.Atoms[iAt].Sigma != params.Atoms[iAt].Sigma)
+				{
+					_nodeNeedsReset = true;
+					SetParams(params);
+					break;
+				}
+				else
+				{
+					_params.Atoms[iAt].Eps = params.Atoms[iAt].Eps;
+					_params.Atoms[iAt].Mass = params.Atoms[iAt].Mass;
+				}
+			}
+		}
+		SetParamMatrices();
 		_runState = RunState::Running;
 		break;
 	case RunState::Running:
@@ -227,11 +226,39 @@ void LJ_Simulation::onPauseSignal()
 		_runState = RunState::Paused;
 }
 
+void LJ_Simulation::SetParamMatrices()
+{
+	auto nType = _params.Atoms.size();
+	_EpsMatrix = std::vector<std::vector<double>>(nType,
+		std::vector<double>(nType, 0));
+	_SigmaMatrix = std::vector<std::vector<double>>(nType,
+		std::vector<double>(nType, 0));
+	for (int iAt = 0; iAt < nType; ++iAt)
+	{
+		_EpsMatrix[iAt][iAt] = _params.Atoms[iAt].Eps;
+		_SigmaMatrix[iAt][iAt] = _params.Atoms[iAt].Sigma;
+		_cur.Types.insert(_cur.Types.end(), _params.Atoms[iAt].N, iAt);
+		for (int jAt = iAt + 1; jAt < nType; ++jAt)
+		{
+			_EpsMatrix[iAt][jAt] = _params.OffDiagFactor * std::sqrt(
+				_params.Atoms[iAt].Eps * _params.Atoms[jAt].Eps);
+			_EpsMatrix[jAt][iAt] = _EpsMatrix[iAt][jAt];
+
+			_SigmaMatrix[iAt][jAt] = 0.5 * (
+				_params.Atoms[iAt].Sigma + _params.Atoms[jAt].Sigma);
+			_SigmaMatrix[jAt][iAt] = _SigmaMatrix[iAt][jAt];
+		}
+	}
+}
+
 void LJ_Simulation::SimulationLoop()
 {
 	_t = 0;
+	std::unique_lock<std::mutex> lock(_runMutex);
 	while (1)
 	{
+		if (_runState == RunState::Stopped)
+			return;
 		while (_runState == RunState::Paused)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -256,6 +283,22 @@ void LJ_Simulation::ScaleVelocities(double vFactor)
 	for (auto& at : _cur.Atoms)
 	{
 		at.Vel *= vFactor;
+	}
+}
+
+void LJ_Simulation::Reset()
+{
+	_runState = RunState::Stopped;
+	_nodeNeedsReset = true;
+	{
+		std::unique_lock<std::mutex> renderLock(_renderStateMutex);
+		_renderState = State();
+	}
+	{
+		std::unique_lock<std::mutex> runLock(_runMutex);
+		_nTotal = 0;
+		_t = 0;
+		_cur = State();
 	}
 }
 
@@ -321,25 +364,37 @@ void LJ_Simulation::reflect(AtomState& s)
 
 void LJ_Simulation::step()
 {
-	std::vector<AtomState> nextAtoms = _cur.Atoms;
-	_Fi = std::vector<vec3Dd>(_nTotal, { 0,0,0 });
-	for (int iAt = 0; iAt < _nTotal; ++iAt)
+	if (_cudaEv)
 	{
-		for (int jAt = iAt + 1; jAt < _nTotal; ++jAt)
+		_cudaEv->evolve(_params.TimeStep);
+		_cur.Atoms = _cudaEv->getAtomStates();
+		//for (int iAt = 0; iAt < _nTotal; ++iAt)
+		//{
+		//	reflect(_cur.Atoms[iAt]);
+		//}
+	}
+	else
+	{
+		std::vector<AtomState> nextAtoms = _cur.Atoms;
+		_Fi = std::vector<vec3Dd>(_nTotal, { 0,0,0 });
+		for (int iAt = 0; iAt < _nTotal; ++iAt)
 		{
-			auto fij = force(_cur.Atoms[iAt].Pos, _cur.Atoms[jAt].Pos,
-				_cur.Types[iAt], _cur.Types[jAt]);
-			_Fi[iAt] += fij;
-			_Fi[jAt] -= fij;
+			for (int jAt = iAt + 1; jAt < _nTotal; ++jAt)
+			{
+				auto fij = force(_cur.Atoms[iAt].Pos, _cur.Atoms[jAt].Pos,
+					_cur.Types[iAt], _cur.Types[jAt]);
+				_Fi[iAt] += fij;
+				_Fi[jAt] -= fij;
+			}
 		}
+		for (int iAt = 0; iAt < _nTotal; ++iAt)
+		{
+			nextAtoms[iAt].Vel += _Fi[iAt] * _params.TimeStep;
+			nextAtoms[iAt].Pos += nextAtoms[iAt].Vel * _params.TimeStep;
+			reflect(nextAtoms[iAt]);
+		}
+		_cur.Atoms = nextAtoms;
 	}
-	for (int iAt = 0; iAt < _nTotal; ++iAt)
-	{
-		nextAtoms[iAt].Vel += _Fi[iAt] * _params.TimeStep;
-		nextAtoms[iAt].Pos += nextAtoms[iAt].Vel * _params.TimeStep;
-		reflect(nextAtoms[iAt]);
-	}
-	_cur.Atoms = nextAtoms;
 	if (_needRenderUpate)
 	{
 		std::unique_lock<std::mutex> renderLock(_renderStateMutex);

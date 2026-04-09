@@ -28,6 +28,7 @@ find_package(CUDAToolkit REQUIRED)
 
 set(KERNEL_SOURCES
     CUDA/mykernels.cu
+    CUDA/EM.cu
  )
 set(SOURCES
  "main.cpp"

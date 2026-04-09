@@ -12,7 +12,7 @@ class LJ_AtomsOptions : public QWidget
 	Q_OBJECT
 public:
 	LJ_AtomsOptions(int typeId, QWidget* parent);
-	LJ_Simulation::SpeciesParams GetAtomParams() const;
+	LJ_SpeciesParams GetAtomParams() const;
 private:
 	int _tId;
 	QDoubleSpinBox* _epsSpin;

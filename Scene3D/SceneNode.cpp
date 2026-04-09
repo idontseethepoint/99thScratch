@@ -91,6 +91,11 @@ void SceneNode::RemoveChild(SceneNode* child)
 		}), _children.end());
 }
 
+void SceneNode::Clear()
+{
+	_children.clear();
+}
+
 SceneNode::Ptr SceneNode::childAt(int idx)
 {
 	if (idx < 0 || idx >= _children.size())

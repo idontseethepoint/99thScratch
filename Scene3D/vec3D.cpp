@@ -3,23 +3,23 @@
 #include <assert.h>
 
 template <typename Scalar>
-vec3Dt<Scalar>::vec3Dt(Scalar x, Scalar y, Scalar z) : Arr({x, y, z})
+vec3Dt<Scalar>::vec3Dt(Scalar x, Scalar y, Scalar z) : Arr{ x, y, z }
 {}
 
-template <typename Scalar>
-vec3Dt<Scalar>::vec3Dt(std::array<Scalar, 3> const& arr) : Arr(arr)
-{}
+CPP_ONLY template <typename Scalar>
+CPP_ONLY vec3Dt<Scalar>::vec3Dt(std::array<Scalar, 3> const& arr) : Arr{ arr[0], arr[1], arr[2] }
+CPP_ONLY {}
 
 template <typename Scalar>
-vec3Dt<Scalar>::vec3Dt(vec3Dt<double> const& vD) : Arr(
-	{ static_cast<Scalar>(vD[0]), static_cast<Scalar>(vD[1]), static_cast<Scalar>(vD[2])})
+vec3Dt<Scalar>::vec3Dt(vec3Dt<double> const& vD) : Arr
+	{ static_cast<Scalar>(vD[0]), static_cast<Scalar>(vD[1]), static_cast<Scalar>(vD[2])}
 {}
 
-template <typename Scalar>
-QVector3D vec3Dt<Scalar>::Qvec() const
-{
-	return QVector3D(Arr[0], Arr[1], Arr[2]);
-}
+CPP_ONLY template <typename Scalar>
+CPP_ONLY QVector3D vec3Dt<Scalar>::Qvec() const
+CPP_ONLY {
+CPP_ONLY 	return QVector3D(Arr[0], Arr[1], Arr[2]);
+CPP_ONLY }
 
 template<typename Scalar>
 Scalar vec3Dt<Scalar>::DistanceSquaredTo(vec3Dt<Scalar> const& other)
@@ -155,6 +155,24 @@ Scalar& vec3Dt<Scalar>::z()
 }
 
 template <typename Scalar>
+Scalar const& vec3Dt<Scalar>::x() const
+{
+	return Arr[0];
+}
+
+template <typename Scalar>
+Scalar const& vec3Dt<Scalar>::y() const
+{
+	return Arr[1];
+}
+
+template <typename Scalar>
+Scalar const& vec3Dt<Scalar>::z() const
+{
+	return Arr[2];
+}
+
+template <typename Scalar>
 Scalar& vec3Dt<Scalar>::operator[](int iDim)
 {
 	assert(iDim >= 0 && iDim < 3);
@@ -171,13 +189,13 @@ Scalar const& vec3Dt<Scalar>::operator[](int iDim) const
 template <typename Scalar>
 Scalar* vec3Dt<Scalar>::data()
 {
-	return Arr.data();
+	return Arr;
 }
 
 template <typename Scalar>
 const Scalar* vec3Dt<Scalar>::constData() const
 {
-	return Arr.data();
+	return Arr;
 }
 
 template <typename Scalar>

@@ -9,7 +9,6 @@
 LJ_AtomsOptions::LJ_AtomsOptions(int typeId, QWidget* parent) :
 	QWidget(parent), _tId(typeId)
 {
-	setStyleSheet("border-style: solid; border-color: #000");
 	auto layout = new QVBoxLayout(this);
 	setLayout(layout);
 	auto epsWidget = new QWidget(this);
@@ -68,8 +67,8 @@ LJ_AtomsOptions::LJ_AtomsOptions(int typeId, QWidget* parent) :
 	layout->addWidget(nWidget);
 }
 
-LJ_Simulation::SpeciesParams LJ_AtomsOptions::GetAtomParams() const
+LJ_SpeciesParams LJ_AtomsOptions::GetAtomParams() const
 {
-	return LJ_Simulation::SpeciesParams({_epsSpin->value(),
+	return LJ_SpeciesParams({_epsSpin->value(),
 		_sigSpin->value(), _massSpin->value(), _nSpin->value()});
 }

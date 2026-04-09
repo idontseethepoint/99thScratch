@@ -3,7 +3,9 @@
 #include "LJ_AtomsOptions.h"
 #include "MainWindow.h"
 
+#include <QCheckBox>
 #include <QDoubleSpinBox>
+#include <QFrame>
 #include <QLabel>
 #include <QLayout>
 #include <QLineEdit>
@@ -30,6 +32,9 @@ SimulationControls::SimulationControls(std::shared_ptr<LJ_Simulation> sim,
 		});
 	scaleSlider->setToolTip("Atom Scale");
 
+	_cudaCB = new QCheckBox("CUDA", this);
+	layout->addWidget(_cudaCB);
+
 	auto dtWidget = new QWidget(this);
 	{
 		auto dtLayout = new QHBoxLayout(dtWidget);
@@ -42,6 +47,19 @@ SimulationControls::SimulationControls(std::shared_ptr<LJ_Simulation> sim,
 		_dtSpin->setValue(-4);
 	}
 	layout->addWidget(dtWidget);
+
+	auto offDiagWidget = new QWidget(this);
+	{
+		auto offLayout = new QHBoxLayout(offDiagWidget);
+		auto offLabel = new QLabel("Off Diagonal Eps Factor:");
+		offLayout->addWidget(offLabel);
+		_offDiagSpin = new QDoubleSpinBox(offDiagWidget);
+		offLayout->addWidget(_offDiagSpin);
+		_offDiagSpin->setRange(0, 100);
+		_offDiagSpin->setValue(1.0);
+		_offDiagSpin->setSingleStep(0.1);
+	}
+	layout->addWidget(offDiagWidget);
 
 	auto boxWidget = new QWidget(this);
 	{
@@ -120,19 +138,22 @@ SimulationControls::SimulationControls(std::shared_ptr<LJ_Simulation> sim,
 		this, &SimulationControls::onStartPausePress);
 }
 
-LJ_Simulation::Parameters SimulationControls::GetParameters()
+LJ_Parameters SimulationControls::GetParameters()
 {
-	std::vector<LJ_Simulation::SpeciesParams> atOpts;
+	std::vector<LJ_SpeciesParams> atOpts;
 	for (auto w : _atomControls)
 	{
 		atOpts.push_back(w->GetAtomParams());
 	}
-	return LJ_Simulation::Parameters({ 
+	return LJ_Parameters({ 
 		std::pow(10, _dtSpin->value()),
+		_offDiagSpin->value(),
 		{
 			{_lxSpinner->value(),_lySpinner->value(), _lxSpinner->value()},
 			{_hxSpinner->value(),_hySpinner->value(), _hxSpinner->value()}
-		}, atOpts });
+		}, 
+		atOpts,
+		_cudaCB->isChecked()});
 }
 
 void SimulationControls::onStartPausePress()
@@ -155,15 +176,19 @@ void SimulationControls::onCountChange(int newCount)
 {
 	for (int i = _atomControls.size(); i < newCount; ++i)
 	{
-		auto w = new LJ_AtomsOptions(i, this);
+		auto f = new QFrame(this);
+		f->setFrameStyle(QFrame::Box | QFrame::Plain);
+		auto fLayout = new QVBoxLayout(f);
+		auto w = new LJ_AtomsOptions(i, f);
+		fLayout->addWidget(w);
 		_atomControls.push_back(w);
-		_atomsLayout->addWidget(w);
+		_atomsLayout->addWidget(f);
 	}
 
 	for (int i = newCount; i < _atomControls.size(); ++i)
 	{
 		auto w = _atomControls.back();
 		_atomControls.pop_back();
-		delete w;
+		delete w->parent();
 	}
 }

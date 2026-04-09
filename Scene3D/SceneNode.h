@@ -32,6 +32,7 @@ public:
 	void setTransform(QMatrix4x4 const& trans);
 	void Remove();
 	void RemoveChild(SceneNode* child);
+	void Clear();
 	inline size_t nChild() const { return _children.size(); }
 	SceneNode::Ptr childAt(int idx);
 	inline WkPtr const getParent() const { return _parent; }

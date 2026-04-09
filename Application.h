@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LJ_Simulation.h"
+#include "LJ_Parameters.h"
 
 #include <QObject>
 
@@ -10,7 +10,7 @@ class Application : public QObject
 public:
 	static Application* App();
 signals:
-	void StartSimulation(LJ_Simulation::Parameters);
+	void StartSimulation(LJ_Parameters);
 	void StopSimulation();
 private:
 	Application();

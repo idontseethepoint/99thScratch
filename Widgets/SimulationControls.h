@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LJ_Simulation.h"
+#include "LJ_Parameters.h"
 
 #include <QWidget>
 
@@ -8,7 +8,9 @@
 #include <vector>
 
 class LJ_AtomsOptions;
+class LJ_Simulation;
 
+class QCheckBox;
 class QDoubleSpinBox;
 class QToolButton;
 class QVBoxLayout;
@@ -19,14 +21,16 @@ class SimulationControls : public QWidget
 public:
 	SimulationControls(std::shared_ptr<LJ_Simulation> sim, 
 		QWidget* parent);
-	LJ_Simulation::Parameters GetParameters();
+	LJ_Parameters GetParameters();
 private slots:
 	void onCountChange(int newCount);
 	void onStartPausePress();
 private:
 	bool _playing = false;
 	std::vector<LJ_AtomsOptions*> _atomControls;
+	QCheckBox* _cudaCB;
 	QDoubleSpinBox* _dtSpin;
+	QDoubleSpinBox* _offDiagSpin;
 	QDoubleSpinBox* _lxSpinner, * _lySpinner, * _lzSpinner;
 	QDoubleSpinBox* _hxSpinner, * _hySpinner, * _hzSpinner;
 	QToolButton* _startPauseButton;
