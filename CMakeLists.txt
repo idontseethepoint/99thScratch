@@ -35,16 +35,18 @@ set(SOURCES
  "Application.cpp"
   
  "Scene3D/AABB.cpp" 
+ "Scene3D/ArrowMesh.cpp"
+ "Scene3D/ConeMesh.cpp"
  "Scene3D/CuboidMesh.cpp" 
+ "Scene3D/CylinderMesh.cpp"
  "Scene3D/GeometryRenderer.cpp"
  "Scene3D/Material.cpp" 
+ "Scene3D/MeshRenderer.cpp" 
  "Scene3D/SceneGraphModel.cpp"
  "Scene3D/SceneNode.cpp" 
  "Scene3D/SimulationSceneNode.cpp"
- "Scene3D/MeshRenderer.cpp" 
  "Scene3D/SphereMesh.cpp"
  "Scene3D/vec3D.cpp"
- "Scene3D/ConeMesh.cpp"
 
  "Sim/LJ_Simulation.cpp" 
 
@@ -56,7 +58,7 @@ set(SOURCES
  "Widgets/SimulationControls.cpp"
  "Widgets/VecDisplay.cpp" 
  "Widgets/SimulationDisplay.cpp"
- )
+   )
 
    
 set(QRC_SOURCES

@@ -12,7 +12,7 @@ namespace
 
 ConeMesh::ConeMesh(vec3D const& baseCenter, vec3D const& axis, float r)
 {
-	auto d0 = axis[0] < axis[1] ? vec3D(1, 0, 0) : vec3D(00, 1, 0);
+	auto d0 = axis[0] < axis[1] ? vec3D(1, 0, 0) : vec3D(0, 1, 0);
 	auto d1 = axis ^ d0;
 	auto M = d1 * d1;
 	if (M == 0)

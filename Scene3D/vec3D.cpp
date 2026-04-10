@@ -122,6 +122,12 @@ vec3Dt<Scalar> vec3Dt<Scalar>::cross(vec3Dt<Scalar> const& other) const
 }
 
 template<typename Scalar>
+vec3Dt<Scalar> vec3Dt<Scalar>::operator-() const
+{
+	return (*this) * -1;
+}
+
+template<typename Scalar>
 void vec3Dt<Scalar>::normalize()
 {
 	(*this) = this->normalized();
@@ -196,6 +202,15 @@ template <typename Scalar>
 const Scalar* vec3Dt<Scalar>::constData() const
 {
 	return Arr;
+}
+
+template<typename Scalar>
+vec3Dt<Scalar> vec3Dt<Scalar>::GetANormal() const
+{
+	auto d0 = Arr[0] < Arr[1] ? vec3Dt<Scalar>(1, 0, 0) : vec3Dt<Scalar>(0, 1, 0);
+	auto ret = (*this) ^ d0;
+	ret.normalize();
+	return ret;
 }
 
 template <typename Scalar>

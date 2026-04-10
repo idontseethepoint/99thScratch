@@ -36,14 +36,24 @@ SceneNode::Ptr SceneNode::addNode(QString const& name)
 	return nn;
 }
 
-SceneNode::Ptr SceneNode::addSimulationNode(std::shared_ptr<LJ_Simulation> sim, QString const& name)
+SceneNode::Ptr SceneNode::addSimulationNode(std::shared_ptr<LJ_Simulation> sim, 
+	QString const& name)
 {
 	auto nn = std::make_shared<SimulationSceneNode>(sim, name, shared_from_this());
 	_children.push_back(nn);
 	return nn;
 }
 
-SceneNode::Ptr SceneNode::addBoxNode(vec3Dd const& low, vec3Dd high, QString const& name)
+SceneNode::Ptr SceneNode::addArrowNode(vec3D const& start, vec3D const& end,
+	float r, QString const& name)
+{
+	auto n = addNode(name);
+	auto cr = MeshRenderer::Arrow(start, end, r);
+	n->setRenderer(cr);
+	return n;
+}
+
+SceneNode::Ptr SceneNode::addBoxNode(vec3Dd const& low, vec3Dd const& high, QString const& name)
 {
 	auto n = addNode(name);
 	auto cr = MeshRenderer::Cuboid(low, high);
@@ -51,7 +61,16 @@ SceneNode::Ptr SceneNode::addBoxNode(vec3Dd const& low, vec3Dd high, QString con
 	return n;
 }
 
-SceneNode::Ptr SceneNode::addConeNode(vec3D const& baseCenter, vec3D axis,
+SceneNode::Ptr SceneNode::addCylinderNode(vec3D const& base1Center, vec3D const& axis, 
+	float r, QString const& name)
+{
+	auto n = addNode(name);
+	auto cr = MeshRenderer::Cylinder(base1Center, axis, r);
+	n->setRenderer(cr);
+	return n;
+}
+
+SceneNode::Ptr SceneNode::addConeNode(vec3D const& baseCenter, vec3D const& axis,
 	float r, QString const& name)
 {
 	auto n = addNode(name);

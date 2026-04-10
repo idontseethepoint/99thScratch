@@ -22,10 +22,11 @@ extern "C" {
 
         void evolve(double dt);
         std::vector<AtomState> getAtomStates();
-    private:
-        void copyToHost(AtomState* d_prev);
         void setParamTable(LJ_Parameters const& params);
         void setBox(LJ_Parameters const& params);
+        void heatCool(double s);
+    private:
+        void copyToHost(AtomState* d_prev);
         vec3Dd* _d_Fij;
         vec3Dd* _d_netForces;
         AtomState* _d_stateCur;
@@ -36,6 +37,8 @@ extern "C" {
         int _nAtom;
         std::vector<AtomState> _latestState;
         bool _needHostUpdate = false;
+        bool _needsHeatCool = false;
+        double _heatCoolFactor;
     };
 #ifdef __cplusplus
 }

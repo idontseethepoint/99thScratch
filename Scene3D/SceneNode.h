@@ -25,9 +25,13 @@ public:
 	SceneNode::Ptr addNode(QString const& name);
 	SceneNode::Ptr addSimulationNode(std::shared_ptr<LJ_Simulation> sim,
 		QString const& name);
-	SceneNode::Ptr addBoxNode(vec3Dd const& low, vec3Dd high, 
+	SceneNode::Ptr addArrowNode(vec3D const& start, vec3D const& end,
+		float r, QString const& name = "Arrow");
+	SceneNode::Ptr addBoxNode(vec3Dd const& low, vec3Dd const& high, 
 		QString const& name = "Box");
-	SceneNode::Ptr addConeNode(vec3D const& baseCenter, vec3D axis,
+	SceneNode::Ptr addCylinderNode(vec3D const& base1Center, vec3D const& axis,
+		float r, QString const& name = "Cylinder");
+	SceneNode::Ptr addConeNode(vec3D const& baseCenter, vec3D const& axis,
 		float r, QString const& name = "Cone");
 	void setTransform(QMatrix4x4 const& trans);
 	void Remove();

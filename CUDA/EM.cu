@@ -115,6 +115,13 @@ __global__ void LJ_Update(const AtomState* prev, AtomState* next,
 	}
 }
 
+__global__ void LJ_HeatCool(AtomState* state, double factor, int nAtom)
+{
+	auto idx = blockIdx.x * blockDim.x + threadIdx.x;
+	if (idx >= nAtom) return;
+	state[idx].Vel *= factor;
+}
+
 template<typename T>
 struct CrossData3D
 {
@@ -299,6 +306,12 @@ void LJ_CUDA_Evolver::evolve(double dt)
 	SetForces<<<nbF, bsF, 0, _stream >>>(_d_stateCur, _d_atomTypes, _d_Fij, _nAtom);
 	LJ_Update<<<_nAtom, blockSize, sizeof(vec3Dd) * blockSize, _stream>>>(_d_stateCur, _d_stateNext,
 		_d_Fij, _d_netForces, dt, _nAtom);
+	if (_needsHeatCool)
+	{
+		int nBlocks = (_nAtom + blockSize - 1) / blockSize;
+		LJ_HeatCool<<<nBlocks, blockSize, 0, _stream>>>(_d_stateNext, _heatCoolFactor, _nAtom);
+		_needsHeatCool = false;
+	}
 	std::swap(_d_stateNext, _d_stateCur);
 	if (_needHostUpdate)
 	{
@@ -376,4 +389,10 @@ void LJ_CUDA_Evolver::setBox(LJ_Parameters const &params)
 	double h_boxHigh[3] = { params.Box.High[0], params.Box.High[1], params.Box.High[2] };
 	cudaMemcpyToSymbol(d_boxLow, h_boxLow, sizeof(double) * 3);
 	cudaMemcpyToSymbol(d_boxHigh, h_boxHigh, sizeof(double) * 3);
+}
+
+void LJ_CUDA_Evolver::heatCool(double s)
+{
+	_heatCoolFactor = s;
+	_needsHeatCool = true;
 }

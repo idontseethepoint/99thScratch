@@ -1,6 +1,8 @@
 #include "MeshRenderer.h"
+#include "ArrowMesh.h"
 #include "ConeMesh.h"
 #include "CuboidMesh.h"
+#include "CylinderMesh.h"
 #include "SceneWidget.h"
 #include "SphereMesh.h"
 
@@ -57,6 +59,14 @@ _VBO(new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer)), _EBO(new QOpenGLBuffer(QOp
 
 }
 
+MeshRenderer::Ptr MeshRenderer::Arrow(vec3D const& start, vec3D const& end, float r)
+{
+	auto cm = std::make_shared<ArrowMesh>(start, end, r);
+	auto ret = std::make_shared<MeshRenderer>(cm);
+	ret->SetColor({ 255, 255, 0 });
+	return ret;
+}
+
 MeshRenderer::Ptr MeshRenderer::Cuboid(vec3D const& low, vec3D const& high)
 {
 	auto cm = std::make_shared<CuboidMesh>(low, high);
@@ -70,6 +80,14 @@ MeshRenderer::Ptr MeshRenderer::Sphere(vec3D const& center, float r)
 	auto sm = std::make_shared<SphereMesh>(center, r);
 	auto ret = std::make_shared<MeshRenderer>(sm);
 	ret->SetColor({ 255, 255, 0 });
+	return ret;
+}
+
+MeshRenderer::Ptr MeshRenderer::Cylinder(vec3D const& base1Center, vec3D const& axis, float r)
+{
+	auto cm = std::make_shared<CylinderMesh>(base1Center, axis, r);
+	auto ret = std::make_shared<MeshRenderer>(cm);
+	ret->SetColor({ 0, 255, 255 });
 	return ret;
 }
 
@@ -101,14 +119,15 @@ void MeshRenderer::Render(QMatrix4x4 const& trans)
 
 	f->glDrawElements(GL_TRIANGLES, _mesh->indexCount(), GL_UNSIGNED_INT, 0);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	_program->setUniformValue(_objectColorLoc, QColor(0, 0, 0));
-	glEnable(GL_POLYGON_OFFSET_LINE);
-	glPolygonOffset(-1, -1);
-	f->glDrawElements(GL_TRIANGLES, _mesh->indexCount(), GL_UNSIGNED_INT, 0);
-	glDisable(GL_POLYGON_OFFSET_LINE);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	_VAO->release();
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//_program->setUniformValue(_objectColorLoc, QColor(255, 255, 255));
+	//glEnable(GL_POLYGON_OFFSET_LINE);
+	//glPolygonOffset(-1, -1);
+	//f->glDrawElements(GL_TRIANGLES, _mesh->indexCount(), GL_UNSIGNED_INT, 0);
+	//glDisable(GL_POLYGON_OFFSET_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//_VAO->release();
+
 	_program->release();
 }
 

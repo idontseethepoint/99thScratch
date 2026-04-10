@@ -33,6 +33,7 @@ struct vec3Dt
 	HOST_DEVICE void operator/=(Scalar s);
 	HOST_DEVICE vec3Dt<Scalar> operator^(vec3Dt<Scalar> const& other) const; //cross product
 	HOST_DEVICE vec3Dt<Scalar> cross(vec3Dt<Scalar> const& other) const;
+	HOST_DEVICE vec3Dt<Scalar> operator-() const;
 	HOST_DEVICE void normalize();
 	HOST_DEVICE vec3Dt normalized() const;
 	HOST_DEVICE Scalar& x();
@@ -51,6 +52,7 @@ struct vec3Dt
 	HOST_DEVICE inline bool operator!=(vec3Dt<Scalar> const& other) const {
 		return !(*this == other);
 	}
+	HOST_DEVICE vec3Dt<Scalar> GetANormal() const;
 	Scalar Arr[3];
 };
 
