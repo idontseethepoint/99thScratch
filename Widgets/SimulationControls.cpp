@@ -33,6 +33,7 @@ SimulationControls::SimulationControls(std::shared_ptr<LJ_Simulation> sim,
 	scaleSlider->setToolTip("Atom Scale");
 
 	_cudaCB = new QCheckBox("CUDA", this);
+	_cudaCB->setChecked(true);
 	layout->addWidget(_cudaCB);
 
 	auto dtWidget = new QWidget(this);
@@ -111,7 +112,7 @@ SimulationControls::SimulationControls(std::shared_ptr<LJ_Simulation> sim,
 	layout->addWidget(atomsArea);
 	QObject::connect(cntSpin, &QSpinBox::valueChanged,
 		this, &SimulationControls::onCountChange);
-	cntSpin->setValue(1);
+	cntSpin->setValue(2);
 
 	auto hcWidget = new QWidget(this);
 	{

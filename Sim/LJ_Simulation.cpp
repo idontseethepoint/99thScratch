@@ -83,7 +83,7 @@ void LJ_Simulation::UpdateNode(SceneNode::Ptr node)
 		std::unique_lock<std::mutex> renderLock;
 		toShow = _renderState;
 	}
-	_simStats = calculateStats(_renderState);
+	_simStats = calculateStats(toShow);
 	emit SimStatsUpdate(_simStats);
 	static const std::vector<QColor> TypeColors{
 		{0, 0, 255},
@@ -98,7 +98,10 @@ void LJ_Simulation::UpdateNode(SceneNode::Ptr node)
 	if (!node)
 		return;
 	if (_nodeNeedsReset)
+	{
 		node->Clear();
+		_nodeNeedsReset = false;
+	}
 	if (node->nChild() < 2 && toShow.Atoms.size() > 0)
 	{
 		for (int iAt = 0; iAt < _nTotal; ++iAt)
@@ -176,6 +179,7 @@ void LJ_Simulation::onStartSignal(LJ_Parameters const& params)
 		break;
 	case RunState::Paused:
 		_params.TimeStep = params.TimeStep;
+		_params.OffDiagFactor = params.OffDiagFactor;
 		if (_params.Box != params.Box || 
 			_params.Atoms.size() != params.Atoms.size() ||
 			_params.UseCUDA != params.UseCUDA)
@@ -201,6 +205,11 @@ void LJ_Simulation::onStartSignal(LJ_Parameters const& params)
 				}
 			}
 		}
+		if (_cudaEv)
+		{
+			_cudaEv->setBox(_params);
+			_cudaEv->setParamTable(_params);
+		}
 		SetParamMatrices();
 		_runState = RunState::Running;
 		break;
@@ -212,12 +221,26 @@ void LJ_Simulation::onStartSignal(LJ_Parameters const& params)
 
 void LJ_Simulation::onHeatPress()
 {
-	_needsHeat = true;
+	if (_cudaEv)
+	{
+		_cudaEv->heatCool(1.25);
+	}
+	else
+	{
+		_needsHeat = true;
+	}
 }
 
 void LJ_Simulation::onCoolPress()
 {
-	_needsCool = true;
+	if (_cudaEv)
+	{
+		_cudaEv->heatCool(0.8);
+	}
+	else
+	{
+		_needsCool = true;
+	}
 }
 
 void LJ_Simulation::onPauseSignal()

@@ -3,6 +3,7 @@
 #include <QLabel>
 #include <QLayout>
 
+
 SimulationDisplay::SimulationDisplay(std::shared_ptr<LJ_Simulation> sim, QWidget* parent)
 {
 	auto layout = new QHBoxLayout(this);
@@ -10,12 +11,15 @@ SimulationDisplay::SimulationDisplay(std::shared_ptr<LJ_Simulation> sim, QWidget
 	_keLabel = new QLabel("KE", this);
 	_peLabel = new QLabel("PE", this);
 	_EtotLabel = new QLabel("Etot", this);
+	_rLabel = new QLabel("Rate", this);
 	layout->addWidget(_tLabel);
 	layout->addWidget(_keLabel);
 	layout->addWidget(_peLabel);
 	layout->addWidget(_EtotLabel);
+	layout->addWidget(_rLabel);
 	QObject::connect(sim.get(), &LJ_Simulation::SimStatsUpdate,
 		this, &SimulationDisplay::onStatsUpdate);
+	_prevUpdateWall = std::chrono::system_clock::now();
 }
 
 void SimulationDisplay::onStatsUpdate(LJ_Simulation::SimStats const& stats)
@@ -24,4 +28,17 @@ void SimulationDisplay::onStatsUpdate(LJ_Simulation::SimStats const& stats)
 	_keLabel->setText(QString("KE: ") + QString::number(stats.KE));
 	_peLabel->setText(QString("PE: ") + QString::number(stats.PE));
 	_EtotLabel->setText(QString("Etot: ") + QString::number(stats.KE + stats.PE));
+	if (!(++_cnt % 20))
+	{
+		auto now = std::chrono::system_clock::now();
+		auto dtWall = now - _prevUpdateWall;
+		if (dtWall.count())
+		{
+			auto dtSim = stats.t - _prevSimT;
+			auto r = dtSim / std::chrono::duration_cast<std::chrono::milliseconds>(dtWall).count();
+			_rLabel->setText(QString("Rate: ") + QString::number(1'000 * r, 'e', 5));
+		}
+		_prevSimT = stats.t;
+			_prevUpdateWall = now;
+	}
 }

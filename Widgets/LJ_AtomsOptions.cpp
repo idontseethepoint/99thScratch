@@ -61,7 +61,7 @@ LJ_AtomsOptions::LJ_AtomsOptions(int typeId, QWidget* parent) :
 		_nSpin = new QSpinBox(this);
 		_nSpin->setRange(0, 1'000'000.0);
 		_nSpin->setSingleStep(1);
-		_nSpin->setValue(10);
+		_nSpin->setValue(100);
 		nLayout->addWidget(_nSpin);
 	}
 	layout->addWidget(nWidget);

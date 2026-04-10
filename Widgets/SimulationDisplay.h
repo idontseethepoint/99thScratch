@@ -4,10 +4,11 @@
 
 #include <QWidget>
 
+#include <chrono>
+#include <memory>
+
 class LJ_Simulation;
 class QLabel;
-
-#include <memory>
 
 class SimulationDisplay : public QWidget
 {
@@ -17,5 +18,8 @@ public:
 private slots:
 	void onStatsUpdate(LJ_Simulation::SimStats const& stats);
 private:
-	QLabel* _tLabel, *_keLabel, *_peLabel, *_EtotLabel;
+	QLabel* _tLabel, *_keLabel, *_peLabel, *_EtotLabel, *_rLabel;
+	double _prevSimT = 0.0;
+	int _cnt = 1;
+	std::chrono::system_clock::time_point _prevUpdateWall;
 };
