@@ -29,6 +29,24 @@ void SceneNode::setRenderer(GeometryRendererAbstract::Ptr renderer)
 	_renderer = renderer;
 }
 
+SceneNode::Ptr SceneNode::addAxes(QString const& name)
+{
+	auto n = addNode(name);
+	auto ax = MeshRenderer::Arrow({ 0, 0, 0 }, { 1, 0, 0 }, 0.05);
+	auto ay = MeshRenderer::Arrow({ 0, 0, 0 }, { 0, 1, 0 }, 0.05);
+	auto az = MeshRenderer::Arrow({ 0, 0, 0 }, { 0, 0, 1 }, 0.05);
+	ax->SetColor({ 255, 0, 0 });
+	ay->SetColor({ 0, 255, 0 });
+	az->SetColor({ 0, 0, 255 });
+	auto nx = n->addNode("X");
+	auto ny = n->addNode("Y");
+	auto nz = n->addNode("Z");
+	nx->setRenderer(ax);
+	ny->setRenderer(ay);
+	nz->setRenderer(az);
+	return n;
+}
+
 SceneNode::Ptr SceneNode::addNode(QString const& name)
 {
 	auto nn = std::make_shared<SceneNode>(name, shared_from_this());
@@ -36,7 +54,7 @@ SceneNode::Ptr SceneNode::addNode(QString const& name)
 	return nn;
 }
 
-SceneNode::Ptr SceneNode::addSimulationNode(std::shared_ptr<LJ_Simulation> sim, 
+SceneNode::Ptr SceneNode::addSimulationNode(std::shared_ptr<Simulation> sim, 
 	QString const& name)
 {
 	auto nn = std::make_shared<SimulationSceneNode>(sim, name, shared_from_this());
@@ -93,6 +111,14 @@ void SceneNode::setTransform(QMatrix4x4 const& trans)
 	for (auto c : _children)
 	{
 		c->updateTrans(_trans);
+	}
+}
+
+void SceneNode::setColor(QColor const& color)
+{
+	if (_renderer)
+	{
+		_renderer->SetColor(color);
 	}
 }
 

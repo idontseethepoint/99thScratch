@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "CollapsibleSection.h"
+#include "EM_Simulation.h"
 #include "LJ_Simulation.h"
 #include "SceneGraphModel.h"
 #include "SceneTree.h"
@@ -86,6 +87,8 @@ MainWindow::MainWindow() : _leftExpanded(true)
 	}
 
 	SceneNode::Root()->addSimulationNode(sim, "LJ_Sim");
+	auto emSim = std::make_shared< EM_Simulation>();
+	SceneNode::Root()->addSimulationNode(emSim, "EM_Sim");
 }
 
 void MainWindow::resizeEvent(QResizeEvent* e)

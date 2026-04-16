@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>basic.vert</file>
         <file>basic.frag</file>
+        <file>vector_field.frag</file>
+        <file>vector_field.vert</file>
     </qresource>
 </RCC>

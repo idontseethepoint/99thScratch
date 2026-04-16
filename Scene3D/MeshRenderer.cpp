@@ -56,7 +56,6 @@ _VBO(new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer)), _EBO(new QOpenGLBuffer(QOp
 	_VAO->release();
 	_VBO->release();
 	_EBO->release();
-
 }
 
 MeshRenderer::Ptr MeshRenderer::Arrow(vec3D const& start, vec3D const& end, float r)

@@ -12,14 +12,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_PREFIX_PATH "C:/Qt/Qt-6.11.0")
-set(Qt6_DIR "C:/Qt/Qt-6.11.0/lib/cmake/Qt6")
-
 find_package(Qt6 REQUIRED COMPONENTS 
 Core
 Widgets
 OpenGL
 OpenGLWidgets)
+qt_standard_project_setup()
 
 find_package(OpenGL REQUIRED)
 
@@ -47,8 +45,11 @@ set(SOURCES
  "Scene3D/SimulationSceneNode.cpp"
  "Scene3D/SphereMesh.cpp"
  "Scene3D/vec3D.cpp"
+ "Scene3D/VectorFieldRenderer.cpp"
+ "Scene3D/VectorField.cpp"
 
  "Sim/LJ_Simulation.cpp" 
+ "Sim/EM_Simulation.cpp" 
 
  "Widgets/CollapsibleSection.cpp"
  "Widgets/LJ_AtomsOptions.cpp"
@@ -58,7 +59,7 @@ set(SOURCES
  "Widgets/SimulationControls.cpp"
  "Widgets/VecDisplay.cpp" 
  "Widgets/SimulationDisplay.cpp"
-   )
+    )
 
    
 set(QRC_SOURCES
@@ -80,10 +81,6 @@ target_compile_options(MyQtCudaApp PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/Zc:__cplusplus>
 )
 
-qt_add_resources(MyQtCudaApp qml.qrc)
-message(STATUS "Added qml.qrc resource")
-message(STATUS "Targets: ${CMAKE_PROJECT_NAME}")
-
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_ARCHITECTURES "89"
@@ -99,12 +96,14 @@ target_link_libraries(MyQtCudaApp
     CUDA::cuda_driver 
 )
 
-if(WIN32)
-    add_custom_command(TARGET MyQtCudaApp POST_BUILD
-        COMMAND $<TARGET_FILE:Qt6::windeployqt>
-            --plugindir C:/Qt/Qt-6.11.0/plugins
-            --qmldir C:/Qt/Qt-6.11.0/qml
-            $<TARGET_FILE:MyQtCudaApp>
-        COMMENT "Deploying Qt dependencies..."
-    )
-endif()
+message(STATUS "QT_DEPLOY_PLUGINS_DIR: ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/Qt6/plugins")
+message(STATUS "Destination: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+# Copy plugins and runtime dependencies after build
+add_custom_command(TARGET MyQtCudaApp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms)
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/$<$<CONFIG:Debug>:debug/>/Qt6/plugins/platforms/qwindows$<$<CONFIG:Debug>:d>.dll"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms/"
+
+)

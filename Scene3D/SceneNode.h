@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 
-class LJ_Simulation;
+class Simulation;
 
 class SceneNode : public std::enable_shared_from_this<SceneNode>
 {
@@ -23,7 +23,8 @@ public:
 	virtual void onFrame();
 	void setRenderer(GeometryRendererAbstract::Ptr renderer);
 	SceneNode::Ptr addNode(QString const& name);
-	SceneNode::Ptr addSimulationNode(std::shared_ptr<LJ_Simulation> sim,
+	SceneNode::Ptr addAxes(QString const& name = "Axes");
+	SceneNode::Ptr addSimulationNode(std::shared_ptr<Simulation> sim,
 		QString const& name);
 	SceneNode::Ptr addArrowNode(vec3D const& start, vec3D const& end,
 		float r, QString const& name = "Arrow");
@@ -34,11 +35,13 @@ public:
 	SceneNode::Ptr addConeNode(vec3D const& baseCenter, vec3D const& axis,
 		float r, QString const& name = "Cone");
 	void setTransform(QMatrix4x4 const& trans);
+	void setColor(QColor const& color);
 	void Remove();
 	void RemoveChild(SceneNode* child);
 	void Clear();
 	inline size_t nChild() const { return _children.size(); }
 	SceneNode::Ptr childAt(int idx);
+	inline std::vector<Ptr> const& Children() const { return _children; }
 	inline WkPtr const getParent() const { return _parent; }
 	int indexOf(SceneNode* child);
 	int indexInParent();

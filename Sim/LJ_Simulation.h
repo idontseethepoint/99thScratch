@@ -4,6 +4,7 @@
 #include "AtomState.h"
 #include "LJ_Parameters.h"
 #include "SceneNode.h"
+#include "Simulation.h"
 #include "vec3D.h"
 
 #include <QObject>
@@ -15,7 +16,7 @@
 
 class LJ_CUDA_Evolver;
 
-class LJ_Simulation : public QObject
+class LJ_Simulation : public Simulation
 {
 	Q_OBJECT
 public:
@@ -27,7 +28,7 @@ public:
 	};
 	LJ_Simulation();
 	void SetParams(LJ_Parameters const& params);
-	void UpdateNode(SceneNode::Ptr node);
+	virtual void UpdateNode(SceneNode::Ptr node) override;
 	inline SimStats GetSimStats() const { return _simStats; }
 signals:
 	void SimStatsUpdate(SimStats const& newStats);

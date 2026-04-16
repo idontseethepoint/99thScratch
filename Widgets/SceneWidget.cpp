@@ -20,6 +20,8 @@
 
 #include <iostream>
 
+#include "VectorFieldRenderer.h"
+
 QMatrix4x4 SceneWidget::_view;
 QMatrix4x4 SceneWidget::_proj;
 QVector3D SceneWidget::_eye = QVector3D(10.0, 0, 0);
@@ -55,6 +57,8 @@ void SceneWidget::initializeGL()
     }
     f->glEnable(GL_DEPTH_TEST);
     f->glEnable(GL_CULL_FACE);
+
+    SceneNode::Root()->addAxes();
 }
 
 void SceneWidget::resizeGL(int w, int h)

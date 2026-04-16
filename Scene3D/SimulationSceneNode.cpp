@@ -1,5 +1,5 @@
 #include "SimulationSceneNode.h"
-#include "LJ_Simulation.h"
+#include "Simulation.h"
 
 void SimulationSceneNode::onFrame()
 {
@@ -10,7 +10,7 @@ void SimulationSceneNode::onFrame()
 	}
 }
 
-SimulationSceneNode::SimulationSceneNode(std::shared_ptr<LJ_Simulation> sim, 
+SimulationSceneNode::SimulationSceneNode(std::shared_ptr<Simulation> sim, 
 	QString const& name, SceneNode::Ptr parent) : SceneNode(name, parent),
 	_sim(sim)
 {}

@@ -24,7 +24,7 @@ public:
 	static MeshRenderer::Ptr Cone(vec3D const& baseCenter, vec3D axis, float r);
 	~MeshRenderer();
 	virtual void Render(QMatrix4x4 const& trans) override;
-	void SetColor(QColor const& color);
+	virtual void SetColor(QColor const& color) override;
 private:
 	Mesh::Ptr _mesh;
 	QColor _color;
